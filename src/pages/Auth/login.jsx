@@ -261,7 +261,7 @@ const handleSubmit = async (e) => {
         </div>
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
-            <p className="text-lg">&ldquo;M3a AloMedia Hna kan 3ndk kl 7aga&rdquo;</p>
+            <p className="text-lg">&ldquo;M3a AloMedia Hna kan 3ndk kllll  7aga&rdquo;</p>
           </blockquote>
         </div>
       </div>
