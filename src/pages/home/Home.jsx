@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import Logout from "../Auth/Logout";
+import Navbar from './NavBar';
+import BookCard from './BookCard';
+import ArabicBooksBackground from './ArabicBooksBackground';
 
 function Home() {
 
@@ -48,11 +51,11 @@ function Home() {
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">
-                Welcome {user.name} to Dashboard
-            </h1>
+            <Navbar />
             <div className="mt-4">
-                <Logout />
+            <ArabicBooksBackground/>
+                <BookCard/>
+         
             </div>
         </div>
     );
