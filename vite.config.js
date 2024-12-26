@@ -8,6 +8,15 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    extensions: ['.js', '.ts', '.jsx', '.tsx'] // Add this line
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.json']
   },
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      external: ['/aws-config'],
+      output: {
+        manualChunks: undefined
+      }
+    }
+  }
 })

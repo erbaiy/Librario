@@ -6,7 +6,6 @@ import App from './App';
 import './aws-config';
 import '@aws-amplify/ui-react/styles.css';
 import './aws-config';
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
