@@ -8,15 +8,14 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.json']
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
+  },
+  optimizeDeps: {
+    include: ['aws-amplify']
   },
   build: {
-    sourcemap: true,
-    rollupOptions: {
-      external: ['/aws-config'],
-      output: {
-        manualChunks: undefined
-      }
+    commonjsOptions: {
+      transformMixedEsModules: true
     }
   }
 })

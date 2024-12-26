@@ -5,7 +5,7 @@ import './index.css';
 import App from './App';
 import './aws-config';
 import '@aws-amplify/ui-react/styles.css';
-import './aws-config';
+import './aws-config.ts';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
