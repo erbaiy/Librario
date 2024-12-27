@@ -41,8 +41,8 @@ const config = {
   Auth: {
     Cognito: {
       //required
-      userPoolId: 'eu-north-1_ha05GkcoW',
-      userPoolClientId: '11n23j689g5ahgb07vve9r9atj',
+      userPoolId: 'eu-north-1_dYSt2KLcZ',
+      userPoolClientId: '1bq8rud5cfp9uec1941vhnedo6',
       
       // optional
       region: 'eu-north-1',
