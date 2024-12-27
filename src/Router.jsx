@@ -20,7 +20,7 @@ const AppRouter = () => {
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/forget-password" element={<ForgetPassword />} />
             <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/" element={<Home />} />
 
             <Route
                     path="/admin/*"
