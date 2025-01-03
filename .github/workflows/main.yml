@@ -35,15 +35,8 @@ jobs:
       - name: Build React app
         run: npm run build
         env:
-          CI: false # This prevents treating warnings as errors
+          CI: false
 
       - name: Deploy to S3
         run: |
           aws s3 sync build/ s3://${{ secrets.AWS_DEPLOY_BUCKET }} --delete
-          
-      - name: Invalidate CloudFront (if using CDN)
-        if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
