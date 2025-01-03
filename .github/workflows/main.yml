@@ -1,4 +1,4 @@
-name: deploy-site
+name: Deploy React App to S3
 
 on:
   push:
@@ -11,16 +11,39 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checking out the code
-        uses: actions/checkout@v2
-      - name: Configure AWS
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Build the app
-        run: npm install && npm run build
-      - name: Deploy the site
-        run: aws s3 sync ./dist s3://${{ secrets.AWS_DEPLOY_BUCKET }} --delete
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build React app
+        run: npm run build
+        env:
+          CI: false # This prevents treating warnings as errors
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync build/ s3://${{ secrets.AWS_DEPLOY_BUCKET }} --delete
+          
+      - name: Invalidate CloudFront (if using CDN)
+        if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
