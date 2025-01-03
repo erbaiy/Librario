@@ -7,8 +7,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import axios from "axios"; // Ensure axios is imported
-import { use } from "react";
+import axiosInstance from "../../../../config/axios";
 
 // Modal Component
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -29,8 +28,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   );
 };
 
-// Book Form Component
-const BookForm = ({ onSubmit, initialData = {}, onClose }) => {
+// BookForm Component (Updated to use categories)
+const BookForm = ({ onSubmit, initialData = {}, onClose, categories }) => {
   const [formData, setFormData] = useState(initialData);
 
   const handleSubmit = (e) => {
@@ -42,7 +41,7 @@ const BookForm = ({ onSubmit, initialData = {}, onClose }) => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -72,14 +71,20 @@ const BookForm = ({ onSubmit, initialData = {}, onClose }) => {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700">Category</label>
-        <input
-          type="text"
+        <select
           name="category"
           value={formData.category || ""}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
           required
-        />
+        >
+          <option value="" disabled>Select a category</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700">Publication Year</label>
@@ -101,8 +106,8 @@ const BookForm = ({ onSubmit, initialData = {}, onClose }) => {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
           required
         >
-          <option value={true}>Available</option>
-          <option value={false}>Not Available</option>
+          <option value="true">Available</option>
+          <option value="false">Not Available</option>
         </select>
       </div>
       <div className="flex justify-end space-x-2">
@@ -125,22 +130,8 @@ const BookForm = ({ onSubmit, initialData = {}, onClose }) => {
 };
 
 export function BookTable() {
-    useEffect(() => {
-        const fetchData = async () => {
-
-            try {
-                const response = await axios.get("http://localhost:3000/books");
-                setBooks(response.data);
-            } catch (error) {
-                console.error("Error fetching books:", error);
-            }
-            setLoading(false);
-        };
-        console.log("Fetching books...", books);
-
-        fetchData();
-    }, []);
   const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
@@ -148,19 +139,73 @@ export function BookTable() {
   const [columnFilters, setColumnFilters] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("localhost:3000/books");
-        setBooks(response.data);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-      }
-      setLoading(false);
-    };
+  // Fetch books
+  const fetchBooks = async () => {
+    try {
+      const response = await axiosInstance.get("/books");
+      setBooks(response.data);
+    } catch (error) {
+      console.error("Error fetching books:", error);
+    }
+    setLoading(false);
+  };
 
-    fetchData();
+  // Fetch categories
+  const fetchCategories = async () => {
+    try {
+      const response = await axiosInstance.get("/categories");
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();
+    fetchCategories();
   }, []);
+
+  // Create book
+  const handleCreateBook = async (newBook) => {
+    try {
+      const response = await axiosInstance.post("/books", newBook);
+      setBooks([...books, response.data]);
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error("Error creating book:", error);
+      alert("Failed to create book. Please try again.");
+    }
+  };
+
+  // Update book
+  const handleEditSubmit = async (updatedBook) => {
+    try {
+      const response = await axiosInstance.put(`/books/${updatedBook.id}`, updatedBook);
+      setBooks(books.map((book) => book.id === updatedBook.id ? response.data : book));
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error("Error updating book:", error);
+      alert("Failed to update book. Please try again.");
+    }
+  };
+
+  // Delete book
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this book?")) {
+      try {
+        await axiosInstance.delete(`/books/${id}`);
+        setBooks(books.filter((book) => book.id !== id));
+      } catch (error) {
+        console.error("Error deleting book:", error);
+        alert("Failed to delete book. Please try again.");
+      }
+    }
+  };
+
+  const handleEdit = (book) => {
+    setEditingBook(book);
+    setIsEditModalOpen(true);
+  };
 
   const columns = [
     {
@@ -225,26 +270,9 @@ export function BookTable() {
     },
   });
 
-  const handleCreateBook = (newBook) => {
-    setBooks([...books, { ...newBook, id: Date.now().toString() }]);
-  };
-
-  const handleEdit = (book) => {
-    setEditingBook(book);
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditSubmit = (updatedBook) => {
-    setBooks(books.map(book => 
-      book.id === updatedBook.id ? updatedBook : book
-    ));
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this book?")) {
-      setBooks(books.filter(book => book.id !== id));
-    }
-  };
+  if (loading) {
+    return <div className="p-4 text-center">Loading...</div>;
+  }
 
   return (
     <div className="p-4">
@@ -278,10 +306,7 @@ export function BookTable() {
                   <th key={header.id} className="px-4 py-2 text-left border-b bg-gray-50">
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
               </tr>
@@ -293,20 +318,14 @@ export function BookTable() {
                 <tr key={row.id} className="hover:bg-gray-50">
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-2 border-b">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
                 </tr>
               ))
             ) : (
               <tr>
-                <td
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <td colSpan={columns.length} className="h-24 text-center">
                   No books found.
                 </td>
               </tr>
@@ -341,6 +360,7 @@ export function BookTable() {
         <BookForm
           onSubmit={handleCreateBook}
           onClose={() => setIsCreateModalOpen(false)}
+          categories={categories}
         />
       </Modal>
 
@@ -354,6 +374,7 @@ export function BookTable() {
           initialData={editingBook}
           onSubmit={handleEditSubmit}
           onClose={() => setIsEditModalOpen(false)}
+          categories={categories}
         />
       </Modal>
     </div>
